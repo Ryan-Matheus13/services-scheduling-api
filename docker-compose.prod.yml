@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  postgres:
+    environment:
+      POSTGRES_USER: healthadmin
+      POSTGRES_PASSWORD: 35\7rX;)5Q7SGKf[3lQo
+      POSTGRES_DB: prod_health_sched_db
+    volumes:
+      - /var/lib/postgresql/data
+
+  redis:
+    environment:
+      REDIS_PASSWORD: prodredispassword
+    volumes:
+      - /data

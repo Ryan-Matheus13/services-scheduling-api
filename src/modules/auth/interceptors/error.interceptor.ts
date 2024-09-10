@@ -12,9 +12,11 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class ErrorInterceptor implements NestInterceptor {
+  constructor(private readonly authService: AuthService) {}
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       catchError((error) => {
@@ -95,8 +97,8 @@ export class ErrorInterceptor implements NestInterceptor {
     }
 
     try {
-      // const payload = await this.authService.validateUser(token);
-      // request.user = payload;
+      const payload = await this.authService.validateToken(token);
+      request.user = payload;
       return true;
     } catch (e) {
       throw new UnauthorizedException('Invalid token');
