@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  password  String
+  userType  UserType
+  doctor    Doctor?
+  clinic    Clinic?
+  patient   Patient?
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now())
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String
+  clinic       Clinic?
+  patient      Patient?
+  updatedAt    DateTime @updatedAt
+}
+
+model Scheduling {
+  id        String           @id @default(uuid())
+  createdAt DateTime         @default(now())
+  status    SchedulingStatus
+  patient   Patient          @relation(fields: [patientId], references: [id])
+  patientId String
+  slot      Slot?
+  updatedAt DateTime         @updatedAt
+}
+
+model Service {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  name      String
+  price     Int
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId  String
+  slots     Slot[]
+  updatedAt DateTime @updatedAt
+}
+
+model Slot {
+  id           String      @id @default(uuid())
+  createdAt    DateTime    @default(now())
+  date         DateTime
+  status       SlotStatus
+  service      Service     @relation(fields: [serviceId], references: [id])
+  serviceId    String
+  scheduling   Scheduling? @relation(fields: [schedulingId], references: [id])
+  schedulingId String?     @unique
+  updatedAt    DateTime    @updatedAt
+}
+
+model Specialty {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  name      String
+  doctors   Doctor[]
+  updatedAt DateTime @updatedAt
+}
+
+model Doctor {
+  id             String      @id @default(uuid())
+  createdAt      DateTime    @default(now())
+  fullname       String
+  crmNumber      String      @unique
+  cpfNumber      String      @unique
+  user           User        @relation(fields: [userId], references: [id])
+  userId         String      @unique
+  profileImage   Image?      @relation(fields: [profileImageId], references: [id])
+  profileImageId String?
+  clinic         Clinic?     @relation(fields: [clinicId], references: [id])
+  clinicId       String?
+  specialtys     Specialty[]
+  services       Service[]
+  updatedAt      DateTime    @updatedAt
+}
+
+model Clinic {
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  name           String
+  phoneNumber    String?
+  profileImage   Image?   @relation(fields: [profileImageId], references: [id])
+  profileImageId String?
+  address        Address  @relation(fields: [addressId], references: [id])
+  addressId      String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique
+  doctors        Doctor[]
+  updatedAt      DateTime @updatedAt
+}
+
+model Patient {
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  name           String
+  phoneNumber    String?
+  cpfNumber      String?
+  profileImage   Image?       @relation(fields: [profileImageId], references: [id])
+  profileImageId String?
+  address        Address      @relation(fields: [addressId], references: [id])
+  addressId      String       @unique
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String       @unique
+  schedulings    Scheduling[]
+  updatedAt      DateTime     @updatedAt
+}
+
+model Image {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  filename  String
+  url       String
+  objectId  String
+  Patient   Patient[]
+  Clinic    Clinic[]
+  Doctor    Doctor[]
+  updatedAt DateTime  @updatedAt
+}
+
+enum UserType {
+  PATIENT
+  PROFISSIONAL_SAUDE
+  CLINIC
+}
+
+enum SchedulingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+}
+
+enum SlotStatus {
+  AVAILABLE
+  OCUPED
+  BLOCKED
+}
